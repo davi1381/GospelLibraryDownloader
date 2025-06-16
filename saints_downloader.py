@@ -139,10 +139,19 @@ def process_podcast_season(name, slug, dest):
     episode_details = []
     for link in episode_links:
         audio_url, title = parse_audio_link(link)
-        match = re.search(r'/(s\d+-episode-\d+)', link)
-        prefix = match.group(1) if match else ""
-        title_cleaned = re.sub(r'^\d+\s*', '', title)
-        filename = f"{prefix} {title_cleaned}.mp3".replace('/', '-')
+        
+        filename = f"{title}.mp3".replace('/', '-') # Fallback
+
+        match = re.search(r'/s(\d+)-episode-(\d+)', link)
+        if match:
+            season_num = int(match.group(1))
+            episode_num = int(match.group(2))
+            
+            # Clean title to remove potential "Episode X: " prefixes
+            title_cleaned = re.sub(r'^episode \d+:\s*', '', title, flags=re.IGNORECASE)
+            
+            filename = f"Episode {season_num}-{episode_num} {title_cleaned}.mp3".replace('/', '-')
+
         out_path = os.path.join(season_dir, filename)
         episode_details.append({'audio_url': audio_url, 'out_path': out_path, 'title': title, 'link': link})
 
